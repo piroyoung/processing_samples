@@ -1,6 +1,33 @@
 
+int X = 1200;
+int Y = 800;
+int SIZE = 10;
+int SPEED = 2;
+BallGrid bg = new BallGrid(X, Y, SIZE);
+
+void setup() {
+  size(1200, 800);
+  frameRate(10);
+  for(int i = 0; i < X/SIZE; i++){
+    for(int j = 0; j < Y/SIZE; j++){
+      if(random(0,1) < 0.50) {
+        bg.balls[i][j].state = true;
+      }
+    }
+  }
+}
+void draw() {
+  clear();
+  bg.render();
+  bg.next();
+  //saveFrame("frames/######.tif");
+}
+
+
 class Ball {
   int size;
+  int origSize = SIZE;
+  int strength = SPEED;
   Boolean state;
   
   Ball(int size, Boolean state) {
@@ -12,10 +39,10 @@ class Ball {
     return this.state;
   }
   
-  public int watchAround(Ball[] balls){
+  public int watchAround(Ball[] neighbors){
     int sum = 0;
-    for(int i = 0; i < balls.length; i++){
-      if(balls[i].isTrue() != this.isTrue()){
+    for(int i = 0; i < neighbors.length; i++){
+      if(neighbors[i].state != this.state){
         sum += 1;
       }
     }
@@ -30,10 +57,15 @@ class Ball {
   }
   
   public Ball getNextState(Ball[] balls) {
-    if(this.watchAround(balls) > balls.length/2){
-      return new Ball(this.size, !this.state);
+    if(this.watchAround(balls) > balls.length/2) {
+      if(this.size - this.strength <= 0) {
+        return new Ball(this.origSize, !this.state);
+      } else {
+        return new Ball(this.size - this.strength, this.state);
+      }
+      //return new Ball(this.size, !this.state);
     } else {
-      return new Ball(this.size, this.state);
+      return new Ball(this.origSize, this.state);
     }
   }
   
@@ -79,41 +111,19 @@ class BallGrid {
        //this.balls[i][j].adaptToAround(neighbors);
        next[i][j] = this.balls[i][j].getNextState(neighbors);
      }
-     this.balls = next.clone();
-    }  
+    } 
+    this.balls = next.clone();
   }
   void render() {
    for(int i = 0; i < this.screenX/this.ballSize; i++ ){
      for(int j = 0; j < this.screenY/this.ballSize; j++){
        if(this.balls[i][j].state == true) {
-         fill(0); 
+         fill(128); 
        } else {
          fill(255);
        }
-       ellipse((float)this.ballSize*i, (float)this.ballSize*j, (float)this.ballSize, (float)this.ballSize);
+       ellipse((float)this.ballSize*i, (float)this.ballSize*j, (float)this.balls[i][j].size, (float)this.balls[i][j].size);
      }
-   }
-    
+   } 
   }
-}
-
-int X = 1200;
-int Y = 800;
-int SIZE = 3;
-BallGrid bg = new BallGrid(X, Y, SIZE);
-
-void setup() {
-  size(1200, 800);
-  frameRate(0.5);
-  for(int i = 0; i < X/SIZE; i++){
-    for(int j = 0; j < Y/SIZE; j++){
-      if(random(0,1) < 0.50) {
-        bg.balls[i][j].state = true;
-      }
-    }
-  }
-}
-void draw() {
-  bg.render();
-  bg.next();
 }
